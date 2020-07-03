@@ -2680,7 +2680,13 @@ static int read_memory_abstract(struct target *target, target_addr_t address,
 		/* Only update the addres initially and let postincrement update it */
 		if (updateaddr) {
 			/* Set arg1 to the address: address + c * size */
+			//================ CODASIP ==================
+			/* Regardless of postincrement the address is correctly computed this way */
+			result = write_abstract_arg(target, 1, address + c * size, riscv_xlen(target));
+#if 0
 			result = write_abstract_arg(target, 1, address, riscv_xlen(target));
+#endif
+			//===========================================
 			if (result != ERROR_OK) {
 				LOG_ERROR("Failed to write arg1 during read_memory_abstract().");
 				return result;
@@ -2698,12 +2704,70 @@ static int read_memory_abstract(struct target *target, target_addr_t address,
 		riscv_reg_t value = read_abstract_arg(target, 0, width32);
 		write_to_buf(p, value, size);
 
+		//================ CODASIP ==================
+		/* Postincrement is not implemented in SweRV, update address every time */
+#if 0
 		updateaddr = false;
+#endif
+		//===========================================
 		p += size;
 	}
 
 	return result;
 }
+
+//================ CODASIP ==================
+/*
+ * Performs a memory read using read_memory_abstract function.
+ * Since SweRV supports only reads of 4 bytes by abstract access,
+ * the different read sizes required are always transfered to reads of 4 bytes.
+ */
+static int read_memory_abstract_by_words(struct target *target, target_addr_t address,
+		uint32_t size, uint32_t count, uint8_t *buffer)
+{
+	/* Alignment check */
+	if (address % size != 0)
+		LOG_WARNING("Address 0x%" TARGET_PRIxADDR " is not aligned for %u-bit access", address, size << 3);
+
+	int result = ERROR_OK;
+
+	uint8_t helper_buf[4];
+	uint8_t *p = buffer;
+	int offset_head = address % 4;
+	int offset_tail = (address + size * count) % 4;
+	target_addr_t curr_addr = address - offset_head;
+	int remaining = count * size;
+
+	/* Phase 1: Read outstanding bytes at the beginning of the block */
+	if (offset_head != 0) {
+		result = read_memory_abstract(target, curr_addr, 4, 1, helper_buf);
+		if (result != ERROR_OK)
+			return result;
+		curr_addr += 4;
+		int curr_read = (remaining > (4 - offset_head)) ? (4 - offset_head) : remaining;
+		memcpy(p, helper_buf + offset_head, curr_read);
+		remaining -= curr_read;
+		p += curr_read;
+	}
+
+	/* Phase 2: Read middle section - whole 32-bit words */
+	result = read_memory_abstract(target, curr_addr, 4, remaining / 4, p);
+	if (result != ERROR_OK)
+		return result;
+	curr_addr += (remaining - offset_tail);
+	p += (remaining - offset_tail);
+
+	/* Phase 3: Read outstanding bytes at the end */
+	if (offset_tail != 0 && remaining != 0) {
+		result = read_memory_abstract(target, curr_addr, 4, 1, helper_buf);
+		if (result != ERROR_OK)
+			return result;
+		memcpy(p, helper_buf, offset_tail);
+	}
+
+	return result;
+}
+//===========================================
 
 /*
  * Performs a memory write using memory access abstract commands. The write
@@ -2745,7 +2809,13 @@ static int write_memory_abstract(struct target *target, target_addr_t address,
 		/* Only update the addres initially and let postincrement update it */
 		if (updateaddr) {
 			/* Set arg1 to the address: address + c * size */
+			//================ CODASIP ==================
+			/* Regardless of postincrement the address is correctly computed this way */
+			result = write_abstract_arg(target, 1, address + c * size, riscv_xlen(target));
+#if 0
 			result = write_abstract_arg(target, 1, address, riscv_xlen(target));
+#endif
+			//===========================================
 			if (result != ERROR_OK) {
 				LOG_ERROR("Failed to write arg1 during write_memory_abstract().");
 				return result;
@@ -2759,12 +2829,77 @@ static int write_memory_abstract(struct target *target, target_addr_t address,
 			return result;
 		}
 
+		//================ CODASIP ==================
+		/* Postincrement is not implemented in SweRV, update address every time */
+#if 0
 		updateaddr = false;
+#endif
+		//===========================================
 		p += size;
 	}
 
 	return result;
 }
+
+//================ CODASIP ==================
+/*
+ * Performs a memory write using write_memory_abstract function.
+ * Since SweRV supports only writes of 4 bytes  by abstract access,
+ * the different write sizes required are always transfered to writes of 4 bytes.
+ * Any remaining bytes are filled with the values read from the memory.
+ */
+static int write_memory_abstract_by_words(struct target *target, target_addr_t address,
+		uint32_t size, uint32_t count, const uint8_t *buffer)
+{
+	/* Alignment check */
+	if (address % size != 0)
+		LOG_WARNING("Address 0x%" TARGET_PRIxADDR " is not aligned for %u-bit access", address, size << 3);
+
+	int result = ERROR_OK;
+
+	uint8_t helper_buf[4];
+	const uint8_t *p = buffer;
+	int offset_head = address % 4;
+	int offset_tail = (address + size * count) % 4;
+	target_addr_t curr_addr = address - offset_head;
+	int remaining = count * size;
+
+	/* Phase 1: Write outstanding bytes at the beginning of the block */
+	if (offset_head != 0) {
+		result = read_memory_abstract(target, curr_addr, 4, 1, helper_buf);
+		if (result != ERROR_OK)
+			return result;
+		int curr_write = (remaining > (4 - offset_head)) ? (4 - offset_head) : remaining;
+		memcpy(helper_buf + offset_head, p, curr_write);
+		result = write_memory_abstract(target, curr_addr, 4, 1, helper_buf);
+		if (result != ERROR_OK)
+			return result;
+		curr_addr += 4;
+		remaining -= curr_write;
+		p += curr_write;
+	}
+
+	/* Phase 2: Write middle section - whole 32-bit words */
+	result = write_memory_abstract(target, curr_addr, 4, remaining / 4, p);
+	if (result != ERROR_OK)
+		return result;
+	curr_addr += (remaining - offset_tail);
+	p += (remaining - offset_tail);
+
+	/* Phase 3: Write outstanding bytes at the end */
+	if (offset_tail != 0 && remaining != 0) {
+		result = read_memory_abstract(target, curr_addr, 4, 1, helper_buf);
+		if (result != ERROR_OK)
+			return result;
+		memcpy(helper_buf, p, offset_tail);
+		result = write_memory_abstract(target, curr_addr, 4, 1, helper_buf);
+		if (result != ERROR_OK)
+			return result;
+	}
+
+	return result;
+}
+//===========================================
 
 /**
  * Read the requested memory, taking care to execute every read exactly once,
@@ -3186,6 +3321,20 @@ static int read_memory(struct target *target, target_addr_t address,
 		uint32_t size, uint32_t count, uint8_t *buffer)
 {
 	RISCV013_INFO(info);
+	//================ CODASIP ==================
+	/* Check whether the requested address is within some abstract access range */
+	struct abstract_mem_range *range = riscv_abstract_mem_range;
+	while (range) {
+		if (address >= range->start && address < range->start + range->len) {
+			LOG_DEBUG("Using abstract memory access due to request within range "
+					"starting from 0x%" TARGET_PRIxADDR, range->start);
+			if (address + count * size > range->start + range->len)
+				LOG_WARNING("Whole abstract access is not within the range");
+			return read_memory_abstract_by_words(target, address, size, count, buffer);
+		}
+		range = range->next;
+	}
+	//===========================================
 	if (info->progbufsize >= 2 && !riscv_prefer_sba)
 		return read_memory_progbuf(target, address, size, count, buffer);
 
@@ -3203,7 +3352,13 @@ static int read_memory(struct target *target, target_addr_t address,
 	if (info->progbufsize >= 2)
 		return read_memory_progbuf(target, address, size, count, buffer);
 
+	//================ CODASIP ==================
+	/* Fix for reads by half or bytes */
+	return read_memory_abstract_by_words(target, address, size, count, buffer);
+#if 0
 	return read_memory_abstract(target, address, size, count, buffer);
+#endif
+	//===========================================
 }
 
 static int write_memory_bus_v0(struct target *target, target_addr_t address,
@@ -3606,6 +3761,20 @@ static int write_memory(struct target *target, target_addr_t address,
 		uint32_t size, uint32_t count, const uint8_t *buffer)
 {
 	RISCV013_INFO(info);
+	//================ CODASIP ==================
+	/* Check whether the requested address is within some abstract access range */
+	struct abstract_mem_range *range = riscv_abstract_mem_range;
+	while (range) {
+		if (address >= range->start && address < range->start + range->len) {
+			LOG_DEBUG("Using abstract memory access due to request within range "
+					"starting from 0x%" TARGET_PRIxADDR, range->start);
+			if (address + count * size > range->start + range->len)
+				LOG_WARNING("Whole abstract access is not within the range");
+			return write_memory_abstract_by_words(target, address, size, count, buffer);
+		}
+		range = range->next;
+	}
+	//===========================================
 	if (info->progbufsize >= 2 && !riscv_prefer_sba)
 		return write_memory_progbuf(target, address, size, count, buffer);
 
@@ -3623,7 +3792,13 @@ static int write_memory(struct target *target, target_addr_t address,
 	if (info->progbufsize >= 2)
 		return write_memory_progbuf(target, address, size, count, buffer);
 
+	//================ CODASIP ==================
+	/* Fix for writes by half or bytes */
+	return write_memory_abstract_by_words(target, address, size, count, buffer);
+#if 0
 	return write_memory_abstract(target, address, size, count, buffer);
+#endif
+	//===========================================
 }
 
 static int arch_state(struct target *target)

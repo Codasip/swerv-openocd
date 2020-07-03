@@ -202,6 +202,16 @@ extern int riscv_reset_timeout_sec;
 
 extern bool riscv_prefer_sba;
 
+//================ CODASIP ==================
+struct abstract_mem_range {
+	target_addr_t start;
+	unsigned len;
+	struct abstract_mem_range *next;
+};
+
+extern struct abstract_mem_range *riscv_abstract_mem_range;
+//===========================================
+
 extern bool riscv_enable_virtual;
 extern bool riscv_ebreakm;
 extern bool riscv_ebreaks;

@@ -250,6 +250,11 @@ int riscv_command_timeout_sec = DEFAULT_COMMAND_TIMEOUT_SEC;
 /* Wall-clock timeout after reset. Settable via RISC-V Target commands.*/
 int riscv_reset_timeout_sec = DEFAULT_RESET_TIMEOUT_SEC;
 
+//================ CODASIP ==================
+/* Linked list of memory ranges with preferred abstract access */
+struct abstract_mem_range *riscv_abstract_mem_range = NULL;
+//===========================================
+
 bool riscv_prefer_sba;
 bool riscv_enable_virt2phys = true;
 bool riscv_ebreakm = true;
@@ -470,6 +475,9 @@ static struct target_type *get_target_type(struct target *target)
 static int riscv_init_target(struct command_context *cmd_ctx,
 		struct target *target)
 {
+	//================ CODASIP ==================
+	LOG_WARNING("Note: This is custom OpenOCD version with extensions and workarounds for SweRV cores.");
+	//===========================================
 	LOG_DEBUG("riscv_init_target()");
 	target->arch_info = calloc(1, sizeof(riscv_info_t));
 	if (!target->arch_info)
@@ -526,6 +534,16 @@ static void riscv_deinit_target(struct target *target)
 	}
 
 	riscv_free_registers(target);
+
+	//================ CODASIP ==================
+	/* Free allocated ranges on deinit */
+	struct abstract_mem_range *range = riscv_abstract_mem_range, *nrange;
+	while (range) {
+		nrange = range->next;
+		free(range);
+		range = nrange;
+	}
+	//===========================================
 
 	target->arch_info = NULL;
 }
@@ -2287,6 +2305,44 @@ COMMAND_HANDLER(riscv_set_prefer_sba)
 	return ERROR_OK;
 }
 
+//================ CODASIP ==================
+/* Handler for the add_abstract_mem_range command, within the range specified by its arguments,
+ * start address and length of the range, abstract access is to be preferred.
+ * Multiple ranges can be specified but they should not overlap. */
+COMMAND_HANDLER(riscv_add_abstract_mem_range)
+{
+	/* Called for the first time? */
+	if (!riscv_abstract_mem_range) {
+		LOG_WARNING("Note: Command `add_abstract_mem_range` is a custom workaround for SweRV.");
+		LOG_WARNING("      (Not part of the official upstream OpenOCD.)");
+	}
+
+	if (CMD_ARGC != 2) {
+		LOG_ERROR("Command takes exactly 2 parameters");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	uint32_t start, len;
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], start);
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], len);
+
+	struct abstract_mem_range *tmp = riscv_abstract_mem_range;
+
+	riscv_abstract_mem_range = calloc(1, sizeof(struct abstract_mem_range));
+	*riscv_abstract_mem_range = (struct abstract_mem_range){.start = start, .len = len, .next = tmp};
+
+	/* Check intervals for overlap */
+	while (tmp) {
+		if ((tmp->start < (start + len)) && (start < (tmp->start + tmp->len)))
+			LOG_WARNING("The specified range is overlapping with an existing range, "
+					"starting from 0x%" TARGET_PRIxADDR, tmp->start);
+		tmp = tmp->next;
+	}
+
+	return ERROR_OK;
+}
+//===========================================
+
 COMMAND_HANDLER(riscv_set_enable_virtual)
 {
 	if (CMD_ARGC != 1) {
@@ -2686,6 +2742,16 @@ static const struct command_registration riscv_exec_command_handlers[] = {
 		.help = "When on, prefer to use System Bus Access to access memory. "
 			"When off (default), prefer to use the Program Buffer to access memory."
 	},
+	//================ CODASIP ==================
+	{
+		.name = "add_abstract_mem_range",
+		.handler = riscv_add_abstract_mem_range,
+		.mode = COMMAND_ANY,
+		.usage = "riscv add_abstract_mem_range starting_addr len",
+		.help = "When set, prefer to use abstract access to access memory "
+			"within the range specified."
+	},
+	//===========================================
 	{
 		.name = "set_enable_virtual",
 		.handler = riscv_set_enable_virtual,
