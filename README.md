@@ -9,8 +9,8 @@ until these are resolved.
 
 ## Code version
 
-The code in this repository is based on "riscv-openocd" (https://github.com/riscv/riscv-openocd).
-Base commit ID: bbfc666eba84f7133510fa0c5cb1d2d9e7a49bce 
+The code in this repository is based on "riscv-openocd" (https://github.com/riscv/riscv-openocd).<br>
+Base commit ID: bbfc666eba84f7133510fa0c5cb1d2d9e7a49bce<br>
 Date: July 2, 2020
 
 ## Codasip changes for SweRV
@@ -26,9 +26,9 @@ core-local memories.
 
   Usage:
 
-  >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes></br>
-riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes></br>
-riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
+  >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes><br>
+   riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes><br>
+   riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
 
 - Allowed 8-bit and 16-bit access to closely coupled memories
 
@@ -50,7 +50,7 @@ not use it.
 
 1. Build this OpenOCD from source code (see next section)
 
-   This binary will be produced: `swerv-openocd`
+   This binary will be produced: `build/bin/swerv-openocd`
 
 2. Prepare configuration file(s) for OpenOCD that match your hardware and your JTAG adapter
 
@@ -58,22 +58,42 @@ not use it.
 
 3. Edit the example .cfg file so that the addresses of PIC, ICCM and DCCM match your hardware
 
-   >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes></br>
-riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes></br>
-riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
+   >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes><br>
+    riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes><br>
+    riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
 
-4. Execute OpenOCD:
-   `path/to/swerv-openocd -f path/to/your/config_file.cfg [-f path/to/other/conf_file.cfg] [...] [-d3]`
+4. Execute OpenOCD:<br>
+   `path/to/swerv-openocd -f path/to/your/config_file.cfg [-f path/to/other/conf_file.cfg] [...] [-d3]`<br>
    Should you need to troubleshoot issues, add argument `-d3` to increase the verbosity of OpenOCD.
 
 ## Build process
 
-If you wish to build OpenOCD from the sourc code, use following commands:
+If you wish to build OpenOCD from the source code, clone this repository including its submodules:
 
->$ ./bootstrap</br>
-$ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=\`pwd\`/build --program-prefix=swerv-</br>
-$ make</br>
-$ make install
+>$ git clone --recursive https://github.com/Codasip/swerv-openocd.git
 
-_Original OpenOCD README can be found under the name README.orig_
+Alternatively:
+
+>$ git clone https://github.com/Codasip/swerv-openocd.git</br>
+ $ cd swerv-openocd</br>
+ $ git submodule update --init --recursive
+ 
+Make sure you have all prerequisities of OpenOCD installed, namely:
+
+- autoconf >= 2.64
+- automake >= 1.14
+- libusb
+
+Note: Sufficient version of automake is not available in CentOS 7 official package repos. To get newer version use:
+
+>$ wget http://repo.okay.com.mx/centos/7/x86_64/release//automake-1.14-1.el7.x86_64.rpm<br>
+ $ sudo yum install automake-1.14-1.el7.x86_64.rpm
+
+
+To build OpenOCD, use following commands:
+
+>$ ./bootstrap<br>
+ $ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=\`pwd\`/build --program-prefix=swerv-<br>
+ $ make<br>
+ $ make install
 
