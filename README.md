@@ -26,8 +26,8 @@ core-local memories.
 
   Usage:
 
-  >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes>`
-riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes>
+  >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes></br>
+riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes></br>
 riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
 
 - Allowed 8-bit and 16-bit access to closely coupled memories
@@ -58,8 +58,8 @@ not use it.
 
 3. Edit the example .cfg file so that the addresses of PIC, ICCM and DCCM match your hardware
 
-   >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes>
-riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes>
+   >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes></br>
+riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes></br>
 riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
 
 4. Execute OpenOCD:
@@ -70,9 +70,9 @@ riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
 
 If you wish to build OpenOCD from the sourc code, use following commands:
 
->$ ./bootstrap
-$ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=\`pwd\`/build --program-prefix=swerv-
-$ make
+>$ ./bootstrap</br>
+$ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=\`pwd\`/build --program-prefix=swerv-</br>
+$ make</br>
 $ make install
 
 _Original OpenOCD README can be found under the name README.orig_
