@@ -96,4 +96,9 @@ To build OpenOCD, use following commands:
  $ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=\`pwd\`/build --program-prefix=swerv-<br>
  $ make<br>
  $ make install
+ 
+ ## Changelog
+ 
+ - v2020_07_16: Fixed abstracts commands not to set `aampostincrement` bit, necessary since SweRV EH1 1.7
+ - v2020_07_07: Initial release
 

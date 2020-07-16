@@ -2670,7 +2670,13 @@ static int read_memory_abstract(struct target *target, target_addr_t address,
 	}
 
 	/* Create the command (physical address, postincrement, read) */
+	//================ CODASIP ==================
+	/* Postincrement is not implemented in SweRV, don't set it in the command */
+	uint32_t command = access_memory_command(target, false, width, false, false);
+#if 0
 	uint32_t command = access_memory_command(target, false, width, true, false);
+#endif
+	//===========================================
 
 	/* Execute the reads */
 	uint8_t *p = buffer;
@@ -2792,7 +2798,13 @@ static int write_memory_abstract(struct target *target, target_addr_t address,
 	}
 
 	/* Create the command (physical address, postincrement, write) */
+	//================ CODASIP ==================
+	/* Postincrement is not implemented in SweRV, don't set it in the command */
+	uint32_t command = access_memory_command(target, false, width, false, true);
+#if 0
 	uint32_t command = access_memory_command(target, false, width, true, true);
+#endif
+	//===========================================
 
 	/* Execute the writes */
 	const uint8_t *p = buffer;
