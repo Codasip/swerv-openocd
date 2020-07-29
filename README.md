@@ -68,7 +68,9 @@ not use it.
 
 ## Build process
 
-If you wish to build OpenOCD from the source code, clone this repository including its submodules:
+### Building on Linux
+
+Clone the contents of this repository, including its submodules:
 
 >$ git clone --recursive https://github.com/Codasip/swerv-openocd.git
 
@@ -77,28 +79,71 @@ Alternatively:
 >$ git clone https://github.com/Codasip/swerv-openocd.git</br>
  $ cd swerv-openocd</br>
  $ git submodule update --init --recursive
- 
-Make sure you have all prerequisities of OpenOCD installed, namely:
 
+Install all the needed **prerequisities**, if sufficient packages are not already installed, namely:
+- libtool
+- pkg-config
 - autoconf >= 2.64
 - automake >= 1.14
 - libusb
+- additional libraries depending on the adapters suported, e.g. libftdi
+ 
+**On CentOS**:
+>$ sudo yum install libtool pkgconfig autoconf automake libusbx libftdi
 
-Note: Sufficient version of automake is not available in CentOS 7 official package repos. To get newer version use:
+Note for **CentOS 7** users: The build of OpenOCD requires automake >= 1.14, which is 
+however not available in official CentOS 7 packages. To obtain sufficient automake,
+use for example:
 
 >$ wget http://repo.okay.com.mx/centos/7/x86_64/release//automake-1.14-1.el7.x86_64.rpm<br>
  $ sudo yum install automake-1.14-1.el7.x86_64.rpm
 
+**On Debian**:
+>$ sudo apt install libtool pkg-config  autoconf automake libusb-1.0 libftdi1
 
-To build OpenOCD, use following commands:
+**Build OpenOCD**, via the following commands:
 
 >$ ./bootstrap<br>
  $ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=\`pwd\`/build --program-prefix=swerv-<br>
  $ make<br>
  $ make install
  
+ ### Build on Windows
+ 
+ We recomend using the **MSYS2 platform** (https://www.msys2.org/). 
+
+Please install MSYS2 on your workstation, if not installed already.
+
+Start MSYS2 and install the needed packages:
+
+>$ pacman -Sy<br>
+ $ pacman -S git libtool automake autoconf pkg-config make gcc<br>
+ $ pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-libftdi mingw-w64-x86_64-libusb
+
+Update your PATH variable in MSYS2: 
+
+>$ export PATH="$PATH:/mingw64/bin"
+
+Clone this repository:
+
+>$ git clone --recursive https://github.com/Codasip/swerv-openocd.git<br>
+ $ cd swerv-openocd
+
+To obtain statically linked OpenOCD binary (which does not require additional DLLs), set this environment variable: 
+
+>$ export AM_LDFLAGS=--static
+
+(Alternatively, the required DLLs can be found in  `<msys2_install_path>\mingw64\lib`)
+
+**Build OpenOCD** using following commands: 
+
+>$ ./bootstrap<br>
+>$ ./configure --enable-jtag_vpi --enable-remote-bitbang --enable-ftdi --prefix=`pwd`/build --program-prefix=swerv- --build=x86_64-unknown-linux-gnu --host=x86_64-w64-mingw32<br>
+>$ make<br>
+>$ make install
+ 
+ 
  ## Changelog
  
  - v2020_07_16: Fixed abstracts commands not to set `aampostincrement` bit, necessary since SweRV EH1 1.7
  - v2020_07_07: Initial release
-
