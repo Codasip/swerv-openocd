@@ -48,21 +48,21 @@ not use it.
 
 ## How to use - quick instructions
 
-1. Build this OpenOCD from source code (see next section)
+1. **Build this OpenOCD** from source code (see next section)
 
    This binary will be produced: `build/bin/swerv-openocd`
 
-2. Prepare configuration file(s) for OpenOCD that match your hardware and your JTAG adapter
+2. **Prepare configuration file(s)** for OpenOCD that match your hardware and your JTAG adapter
 
-   Follow the provided example:  `swerv-example.cfg`
+   Follow one of the provided examples in the `config_examples` directory: 
+   
+   - `swervolf_jtag_vpi.cfg` - SweRVolf running in simmulation, using JTAG VPI
+   - `swervolf_nexys_a7_bscan.cfg` - SweRVolf on Nexys A7 board, using the JTAG interface of the FPGA board
+   - `swervolf_nexys_a7_olimex.cfg` - SweRVolf on Nexys A7 board, using Olimex ARM-USB-TINY-H adapter
 
-3. Edit the example .cfg file so that the addresses of PIC, ICCM and DCCM match your hardware
+   **Don't forget to edit the example configuration file so that the addresses of PIC, ICCM and DCCM match your hardware, or create own configuration file(s) if needed.**
 
-   >riscv add_abstract_mem_range <ICCM_start_addr> <ICCM_len_bytes><br>
-    riscv add_abstract_mem_range <DCCM_start_addr> <DCCM_len_bytes><br>
-    riscv add_abstract_mem_range <PIC_start_addr> <PIC_len_bytes>
-
-4. Execute OpenOCD:<br>
+3. **Execute OpenOCD**:<br>
    `path/to/swerv-openocd -f path/to/your/config_file.cfg [-f path/to/other/conf_file.cfg] [...] [-d3]`<br>
    Should you need to troubleshoot issues, add argument `-d3` to increase the verbosity of OpenOCD.
 
