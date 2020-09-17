@@ -1,11 +1,17 @@
 # About this OpenOCD version
 
 This is a modified OpenOCD version with workarounds 
-("software hotfixes") for SweRV RISC-V cores (SweRV EH1 <= 1.7).
+("software hotfixes") for SweRV RISC-V cores (SweRV EH1 **<= 1.7**).
 
 It is intended as a temporary tool to work around the limitations
 of the current SweRV cores (smooth access to ICCM+DCCM memories),
 until these are resolved.
+
+For **newer versions** of SweRV use upstream "riscv-openocd" (https://github.com/riscv/riscv-openocd).
+To enable access to xCCM, use the following command:
+
+> riscv set_mem_access abstract
+
 
 ## Code version
 
