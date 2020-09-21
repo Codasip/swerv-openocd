@@ -1,16 +1,24 @@
-# About this OpenOCD version
+# This repository has been obsoleted.
 
-This is a modified OpenOCD version with workarounds 
+This repository contains modified OpenOCD with workarounds ("hotfixes") that were needed for SweRV EH1 cores **1.7 and older**.
+
+For present-day [SweRV EH1 cores](https://github.com/chipsalliance/Cores-SweRV) **1.8 and above**, please use plain-vanilla RISC-V OpenOCD version from [riscv-openocd repository](https://github.com/riscv/riscv-openocd).
+
+The hotfixes in this repository are no longer required for SweRV EH1 1.8+ and the code is left here for archive purposes only.
+
+---
+# Original Readme (archived):
+
+
+## About this OpenOCD version
+
+This was a modified OpenOCD version with workarounds 
 ("software hotfixes") for SweRV RISC-V cores (SweRV EH1 **<= 1.7**).
 
-It is intended as a temporary tool to work around the limitations
-of the current SweRV cores (smooth access to ICCM+DCCM memories),
-until these are resolved.
+It was intended as a temporary tool to work around the limitations
+of the SweRV core (smooth access to ICCM+DCCM memories), as required at that time.
 
-For **newer versions** of SweRV use upstream "riscv-openocd" (https://github.com/riscv/riscv-openocd).
-To enable access to xCCM, use the following command:
-
-> riscv set_mem_access abstract
+For **SweRV EH1 1.8 and above**, please use upstream "riscv-openocd" (https://github.com/riscv/riscv-openocd). The command to activate abstract memory access in present-day "riscv-openocd" is: `riscv set_mem_access abstract` (add it to your OpenOCD configuration).
 
 
 ## Code version
@@ -151,5 +159,6 @@ To obtain statically linked OpenOCD binary (which does not require additional DL
  
  ## Changelog
  
+ - v2020_09_21: This repository has been obsoleted. Upstream "riscv-openocd" shall be used instead.
  - v2020_07_16: Fixed abstracts commands not to set `aampostincrement` bit, necessary since SweRV EH1 1.7
  - v2020_07_07: Initial release
