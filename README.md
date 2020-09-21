@@ -18,8 +18,7 @@ This was a modified OpenOCD version with workarounds
 It was intended as a temporary tool to work around the limitations
 of the SweRV core (smooth access to ICCM+DCCM memories), as required at that time.
 
-For **SweRV EH1 1.8 and above**, please use upstream "riscv-openocd" (https://github.com/riscv/riscv-openocd).
-Note: The command to activate abstract memory access in present-day "riscv-openocd" is: `riscv set_mem_access abstract` (add it to your OpenOCD configuration).
+For **SweRV EH1 1.8 and above**, please use upstream "riscv-openocd" (https://github.com/riscv/riscv-openocd). The command to activate abstract memory access in present-day "riscv-openocd" is: `riscv set_mem_access abstract` (add it to your OpenOCD configuration).
 
 
 ## Code version
