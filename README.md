@@ -159,8 +159,8 @@ To obtain statically linked OpenOCD binary (which does not require additional DL
  
  ## Changelog
 
- - v2020\_12\_24: Commands "expose\_csrs" and "expose\_custom" were improved - changes backported from riscv-openocd. 
-   (Cherry-picked commits [11c4f89b3](https://github.com/riscv/riscv-openocd/commit/11c4f89b32536de6d67264812bd7418433bd863b) and [6db3ed2c8](https://github.com/riscv/riscv-openocd/commit/6db3ed2c862e04588bf80758acb463a14e9b5ff5))
+ - v2020\_01\_27: Commands "expose\_csrs" and "expose\_custom" were improved - changes backported from riscv-openocd
+   (cherry-picked commits [11c4f89b3](https://github.com/riscv/riscv-openocd/commit/11c4f89b32536de6d67264812bd7418433bd863b) and [6db3ed2c8](https://github.com/riscv/riscv-openocd/commit/6db3ed2c862e04588bf80758acb463a14e9b5ff5)). Fixed a minor free() related bug.
  - v2020\_09\_21: This repository has been obsoleted. Upstream "riscv-openocd" shall be used instead.
  - v2020\_07\_16: Fixed abstracts commands not to set `aampostincrement` bit, necessary since SweRV EH1 1.7
  - v2020\_07\_07: Initial release
