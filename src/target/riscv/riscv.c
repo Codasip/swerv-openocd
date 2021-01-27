@@ -543,6 +543,8 @@ static void riscv_deinit_target(struct target *target)
 		free(range);
 		range = nrange;
 	}
+	/* ranges are global (one list for all riscv targets), so deallocate only once: */
+	riscv_abstract_mem_range = NULL;
 	//===========================================
 
 	target->arch_info = NULL;
