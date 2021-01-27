@@ -226,6 +226,8 @@ static int get_register(struct target *target, riscv_reg_t *value, int hartid,
 static riscv011_info_t *get_info(const struct target *target)
 {
 	riscv_info_t *info = (riscv_info_t *) target->arch_info;
+	assert(info);
+	assert(info->version_specific);
 	return (riscv011_info_t *) info->version_specific;
 }
 

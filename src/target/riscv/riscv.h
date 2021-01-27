@@ -50,6 +50,12 @@ typedef struct {
 } riscv_reg_info_t;
 
 typedef struct {
+	struct list_head list;
+	uint16_t low, high;
+	char *name;
+} range_list_t;
+
+typedef struct {
 	unsigned dtm_version;
 
 	struct command_context *cmd_ctx;
@@ -174,6 +180,14 @@ typedef struct {
 	/* Set when trigger registers are changed by the user. This indicates we eed
 	 * to beware that we may hit a trigger that we didn't realize had been set. */
 	bool manual_hwbp_set;
+
+	/* In addition to the ones in the standard spec, we'll also expose additional
+	 * CSRs in this list. */
+	struct list_head expose_csr;
+	/* Same, but for custom registers.
+	 * Custom registers are for non-standard extensions and use abstract register numbers
+	 * from range 0xc000 ... 0xffff. */
+	struct list_head expose_custom;
 } riscv_info_t;
 
 typedef struct {
@@ -221,7 +235,10 @@ extern bool riscv_ebreaku;
  * that provides that. */
 static inline riscv_info_t *riscv_info(const struct target *target) __attribute__((unused));
 static inline riscv_info_t *riscv_info(const struct target *target)
-{ return target->arch_info; }
+{
+	assert(target->arch_info);
+	return target->arch_info;
+}
 #define RISCV_INFO(R) riscv_info_t *R = riscv_info(target);
 
 extern uint8_t ir_dtmcontrol[4];
